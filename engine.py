@@ -57,10 +57,11 @@ Supported block types
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Dict, List, Mapping, Sequence, Tuple
 
-from composition import compose_and, compose_loop, compose_or, compose_seq, compose_xor
+from composition import compose_and, compose_loop, compose_or, compose_seq, compose_xor, binary_entropy
 from iepi_score import compute_construct_violation_record, compute_iepi
 from metrics import normalized_entropy, responsiveness
 from validation import build_construct_flags, build_loop_flags
@@ -80,8 +81,6 @@ def compute_construct_diagnostics(
 ) -> Dict[str, Dict[str, object]]:
     """
     Compute per-construct diagnostics and violations for XOR/OR constructs.
-
-    Invalid probability inputs are flagged and excluded from V(c) computation.
     """
     records: Dict[str, Dict[str, object]] = {}
 
@@ -89,10 +88,7 @@ def compute_construct_diagnostics(
         flags_record = build_construct_flags(construct_id, probabilities)
 
         if not flags_record["valid"]:
-            records[construct_id] = {
-                "construct_id": construct_id,
-                "flags": flags_record,
-            }
+            records[construct_id] = dict(flags_record)
             continue
 
         H_N = normalized_entropy(probabilities)
@@ -118,21 +114,16 @@ def compute_loop_diagnostics(
     """
     Compute per-construct diagnostics and violations for LOOP constructs.
     """
-    from composition import binary_entropy
-
     records: Dict[str, Dict[str, object]] = {}
 
     for construct_id, q in loop_probability_map.items():
         flags_record = build_loop_flags(construct_id, q)
 
         if not flags_record["valid"]:
-            records[construct_id] = {
-                "construct_id": construct_id,
-                "flags": flags_record,
-            }
+            records[construct_id] = dict(flags_record)
             continue
 
-        H_N = binary_entropy(q) / __import__("math").log(2.0)
+        H_N = binary_entropy(q) / math.log(2.0)
         R = q * (1.0 - q)
 
         records[construct_id] = compute_construct_violation_record(
@@ -170,35 +161,6 @@ def evaluate_block(
 ) -> Tuple[float, float]:
     """
     Recursively evaluate a block and return (U, R).
-
-    Block schema
-    ------------
-    leaf:
-        {"type": "leaf"}
-
-    seq / and:
-        {"type": "seq", "children": [...]}
-        {"type": "and", "children": [...]}
-
-    xor / or:
-        {
-            "type": "xor",
-            "id": "G1",
-            "children": [...]
-        }
-
-        {
-            "type": "or",
-            "id": "G2",
-            "children": [...]
-        }
-
-    loop:
-        {
-            "type": "loop",
-            "id": "L1",
-            "body": {...}
-        }
     """
     block_type = block["type"]
 
@@ -260,17 +222,6 @@ def run_iepi_engine(
 ) -> Dict[str, object]:
     """
     Run the complete IEPI computation for a process.
-
-    Returns
-    -------
-    Dict[str, object]
-        {
-            "constructs": ...,
-            "C_valid": ...,
-            "U": ...,
-            "R": ...,
-            "IEPI": ...
-        }
     """
     if loop_probability_map is None:
         loop_probability_map = {}
@@ -296,6 +247,7 @@ def run_iepi_engine(
         probability_map=probability_map,
         loop_probability_map=loop_probability_map,
     )
+
     iepi_value = compute_iepi(valid_construct_records)
 
     return {
