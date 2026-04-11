@@ -5,6 +5,12 @@ Reproducibility script for the IEPI reference implementation.
 
 This script reproduces the reported Scenario A and Scenario B results
 using the fixed probabilities and threshold configuration defined in the paper.
+
+Branch-order convention
+-----------------------
+For each XOR routing construct, the order of children follows the order of the
+probability vector. In the reported scenarios, the first branch is the
+continuation branch used in the recursive composition formulas.
 """
 
 from __future__ import annotations
@@ -20,22 +26,23 @@ def format_float(x: float, digits: int = 6) -> str:
 
 
 def print_construct_diagnostics(title: str, constructs: Mapping[str, dict]) -> None:
-    """Print per-construct diagnostics for valid construct records."""
+    """Print per-construct diagnostics."""
     print(title)
     print("-" * len(title))
 
     for construct_id in sorted(constructs.keys()):
         record = constructs[construct_id]
+
         if "H_N" not in record:
             print(f"{construct_id}: INVALID ({record['flags']})")
             continue
 
         print(
             f"{construct_id}: "
-            f"H_N={format_float(record['H_N'])}, "
-            f"R={format_float(record['R'])}, "
+            f"H_N={format_float(record['H_N'], 3)}, "
+            f"R={format_float(record['R'], 3)}, "
             f"kappa={record['kappa']}, "
-            f"V={format_float(record['V'])}"
+            f"V={format_float(record['V'], 4)}"
         )
     print()
 
@@ -44,9 +51,9 @@ def print_process_result(name: str, result: Mapping[str, object]) -> None:
     """Print process-level outputs."""
     print(name)
     print("-" * len(name))
-    print(f"U = {format_float(result['U'])}")
-    print(f"R = {format_float(result['R'])}")
-    print(f"IEPI = {format_float(result['IEPI'])}")
+    print(f"U = {format_float(result['U'], 3)}")
+    print(f"R = {format_float(result['R'], 3)}")
+    print(f"IEPI = {format_float(result['IEPI'], 3)}")
     print(f"|C_valid| = {len(result['C_valid'])}")
     print()
 
@@ -75,9 +82,9 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Scenario A
     #
-    # Paper-consistent structure:
-    # G1 routes either to rejection (leaf) or to G2
-    # G2 then routes to approval / rejection
+    # Child order follows the probability vector order:
+    # G1 = (0.70, 0.30), where the first branch continues to G2
+    # and the second branch terminates.
     #
     # This yields:
     #   U_A = H(p_G1) + p_G1^pass * H(p_G2)
@@ -108,8 +115,9 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Scenario B
     #
-    # Paper-consistent structure:
-    # G0 routes either to rejection (leaf) or to the Scenario A approval chain
+    # Child order follows the probability vector order:
+    # G0 = (0.85, 0.15), where the first branch continues to the
+    # Scenario A chain and the second branch terminates.
     #
     # This yields:
     #   U_B = H(p_G0) + p_G0^pass * [H(p_G1) + p_G1^pass * H(p_G2)]
