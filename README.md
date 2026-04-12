@@ -1,5 +1,8 @@
 # iepi-analytics-engine
 
+## The Information Entropy Performance Indicator (IEPI)
+### A Deterministic Analytics Engine for Quantifying Routing Uncertainty in BPMN Process Models
+
 OVERVIEW
 
 This repository contains a reference implementation of the Information Entropy Performance Indicator (IEPI) for BPMN 2.0 process models with externally defined routing probabilities.
@@ -8,48 +11,29 @@ The objective is to provide a clear and reproducible implementation of what is d
 
 Everything is deterministic and follows directly from the definitions and rules in the submitted manuscript.
 
---------------------------------------------------
-
 WHAT THE ENGINE COMPUTES
 
 The implementation operates across three levels:
 
-1. CONSTRUCT LEVEL
+1st - CONSTRUCT LEVEL: For each routing construct c, the engine computes:
 
-For each routing construct c, the engine computes:
-
-- Normalized entropy H_N(c)
-- Responsiveness R(c)
-- Viability classification κ(c)
-- Diagnostic flags f[c]
+i) Normalized entropy H_N(c)
+ii) Responsiveness R(c)
+iii) Viability classification κ(c)
+iv) Diagnostic flags f[c]
 
 These quantities describe the local uncertainty and structural properties of each routing point.
 
---------------------------------------------------
+2nd - BLOCK LEVEL: Uncertainty is propagated through the process structure using the composition rules. This produces:
 
-2. BLOCK LEVEL
+i) U(B): propagated uncertainty of the block
+ii) R(B): a descriptive responsiveness summary of the block
 
-Uncertainty is propagated through the process structure using the composition rules.
+Note: R(B) is descriptive only and is not used in IEPI scoring.
 
-This produces:
-
-- U(B): propagated uncertainty of the block
-- R(B): a descriptive responsiveness summary of the block
-
-Note:
-R(B) is descriptive only and is not used in IEPI scoring.
-
---------------------------------------------------
-
-3. PROCESS LEVEL
-
-The final IEPI score is computed over all constructs:
-
-IEPI = 1 / (1 + average(V(c)))
+3rd - PROCESS LEVEL: The final IEPI score is computed over all constructs as: IEPI = 1 / (1 + average(V(c))),
 
 where V(c) represents the violation of entropy and responsiveness constraints.
-
---------------------------------------------------
 
 REPOSITORY STRUCTURE
 
@@ -60,21 +44,15 @@ iepi_score.py           - violation computation and IEPI score
 engine.py               - main orchestration logic  
 reproduce_results.py    - script to reproduce the paper results  
 
---------------------------------------------------
+RUNNING THE EXAMPLE FROM THE SUBMITTED MANUSCRIPT
 
-RUNNING THE EXAMPLE
-
-To reproduce the results from the paper, run:
-
-python reproduce_results.py
+To reproduce the results from the paper, run: python reproduce_results.py
 
 This will output:
 
-- Construct-level diagnostics
-- Propagated uncertainty values
-- IEPI scores for Scenario A and Scenario B
-
---------------------------------------------------
+i) Construct-level diagnostics
+ii) Propagated uncertainty values
+iii) IEPI scores for Scenario A and Scenario B
 
 INPUTS
 
@@ -82,34 +60,26 @@ The engine expects:
 
 1. A process structure (as a nested block dictionary)
 2. A mapping from routing constructs to probability vectors
-3. Threshold values:
-   (H_min, H_max, rho_min)
+3. Threshold values: (H_min, H_max, rho_min)
 
 Important:
-- Routing probabilities must be provided explicitly
-- The implementation does NOT estimate or infer them
-
---------------------------------------------------
+i) Routing probabilities must be provided explicitly
+ii) The implementation does NOT estimate or infer them
 
 IMPORTANT NOTES
 
-- The order of probabilities must match the order of branches in the process structure
-- R(B) values are descriptive and are not used in IEPI scoring
-- The implementation is fully deterministic:
-  same inputs always produce the same outputs
-
---------------------------------------------------
+i) The order of probabilities must match the order of branches in the process structure
+ii) R(B) values are descriptive and are not used in IEPI scoring
+iii) The implementation is fully deterministic:   same inputs always produce the same outputs
 
 SCOPE
 
-This is a minimal reference implementation designed for:
-
-- Reproducibility
-- Clarity
-- Alignment with the academic formulation
+This is a minimal reference implementation designed for reproducibility, clarity, and alignment with the academic formulation
 
 It does NOT include:
 
-- BPMN XML parsing
-- Probability estimation from data
-- Optimization or simulation features
+i) BPMN XML parsing
+ii) Probability estimation from data
+iii) Optimization or simulation features
+
+Author: Apostolos Mouzakitis (ORCID: 0009-0000-4863-7287), PhD Candidate, University of Greater Manchester (formerly University of Bolton), UK; New York College, Athens, Greece; Correspondence: amouzakitis@nyc.gr
