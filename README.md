@@ -1,5 +1,4 @@
-## The Information Entropy Performance Indicator (IEPI)
-### A Deterministic Analytics Engine for Quantifying Routing Uncertainty in BPMN Process Models
+### The Information Entropy Performance Indicator (IEPI): A Deterministic Analytics Engine for Quantifying Routing Uncertainty in BPMN Process Models
 
 This repository contains a reference implementation of the Information Entropy Performance Indicator (IEPI) for BPMN 2.0 process models with externally defined routing probabilities. The objective is to provide a clear and reproducible implementation of what is described in the paper. Given a process structure and a set of routing probabilities, the engine computes: construct-level diagnostics, block-level uncertainty propagation, and a process-level IEPI score. Everything is deterministic and follows directly from the definitions and rules in the submitted manuscript.
 
