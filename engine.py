@@ -59,9 +59,9 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Dict, List, Mapping, Sequence, Tuple
+from typing import Dict, Mapping, Sequence, Tuple
 
-from composition import compose_and, compose_loop, compose_or, compose_seq, compose_xor, binary_entropy
+from composition import binary_entropy, compose_loop, compose_or, compose_xor
 from iepi_score import compute_construct_violation_record, compute_iepi
 from metrics import normalized_entropy, responsiveness
 from validation import build_construct_flags, build_loop_flags
@@ -154,62 +154,111 @@ def extract_valid_construct_records(
     return valid
 
 
-def evaluate_block(
+def evaluate_block_utility(
     block: Mapping[str, object],
     probability_map: Mapping[str, Sequence[float]],
     loop_probability_map: Mapping[str, float],
-) -> Tuple[float, float]:
+) -> float:
     """
-    Recursively evaluate a block and return (U, R).
+    Recursively evaluate block-level uncertainty U(B).
     """
     block_type = block["type"]
 
     if block_type == "leaf":
-        return 0.0, 0.0
+        return 0.0
 
     if block_type in {"seq", "and"}:
         children = block.get("children", [])
-        child_utilities: List[float] = []
-        child_responsiveness: List[float] = []
-
-        for child in children:
-            U_child, R_child = evaluate_block(child, probability_map, loop_probability_map)
-            child_utilities.append(U_child)
-            child_responsiveness.append(R_child)
-
-        if block_type == "seq":
-            return compose_seq(child_utilities, child_responsiveness)
-        return compose_and(child_utilities, child_responsiveness)
+        return sum(
+            evaluate_block_utility(child, probability_map, loop_probability_map)
+            for child in children
+        )
 
     if block_type == "xor":
         construct_id = block["id"]
         probabilities = probability_map[construct_id]
         children = block["children"]
-
         child_utilities = [
-            evaluate_block(child, probability_map, loop_probability_map)[0]
+            evaluate_block_utility(child, probability_map, loop_probability_map)
             for child in children
         ]
-        return compose_xor(probabilities, child_utilities)
+        U, _ = compose_xor(probabilities, child_utilities)
+        return U
 
     if block_type == "or":
         construct_id = block["id"]
         probabilities = probability_map[construct_id]
         children = block["children"]
-
         child_utilities = [
-            evaluate_block(child, probability_map, loop_probability_map)[0]
+            evaluate_block_utility(child, probability_map, loop_probability_map)
             for child in children
         ]
-        return compose_or(probabilities, child_utilities)
+        U, _ = compose_or(probabilities, child_utilities)
+        return U
 
     if block_type == "loop":
         construct_id = block["id"]
         q = loop_probability_map[construct_id]
         body = block["body"]
+        body_utility = evaluate_block_utility(body, probability_map, loop_probability_map)
+        U, _ = compose_loop(q, body_utility)
+        return U
 
-        body_utility, _ = evaluate_block(body, probability_map, loop_probability_map)
-        return compose_loop(q, body_utility)
+    raise ValueError(f"Unsupported block type: {block_type}")
+
+
+def evaluate_block_responsiveness(
+    block: Mapping[str, object],
+    probability_map: Mapping[str, Sequence[float]],
+    loop_probability_map: Mapping[str, float],
+) -> float:
+    """
+    Recursively evaluate the descriptive block-level responsiveness summary R(B).
+
+    In this reference implementation, the reported process-level R is the sum of
+    local routing responsiveness values across routing constructs appearing in
+    the process structure, consistent with the paper's reported Scenario A/B
+    block-level summaries.
+    """
+    block_type = block["type"]
+
+    if block_type == "leaf":
+        return 0.0
+
+    if block_type in {"seq", "and"}:
+        children = block.get("children", [])
+        return sum(
+            evaluate_block_responsiveness(child, probability_map, loop_probability_map)
+            for child in children
+        )
+
+    if block_type == "xor":
+        construct_id = block["id"]
+        local_r = responsiveness(probability_map[construct_id])
+        children = block["children"]
+        child_r = sum(
+            evaluate_block_responsiveness(child, probability_map, loop_probability_map)
+            for child in children
+        )
+        return local_r + child_r
+
+    if block_type == "or":
+        construct_id = block["id"]
+        local_r = responsiveness(probability_map[construct_id])
+        children = block["children"]
+        child_r = sum(
+            evaluate_block_responsiveness(child, probability_map, loop_probability_map)
+            for child in children
+        )
+        return local_r + child_r
+
+    if block_type == "loop":
+        construct_id = block["id"]
+        q = loop_probability_map[construct_id]
+        local_r = q * (1.0 - q)
+        body = block["body"]
+        body_r = evaluate_block_responsiveness(body, probability_map, loop_probability_map)
+        return local_r + body_r
 
     raise ValueError(f"Unsupported block type: {block_type}")
 
@@ -242,7 +291,13 @@ def run_iepi_engine(
 
     valid_construct_records = extract_valid_construct_records(construct_records)
 
-    U_process, R_process = evaluate_block(
+    U_process = evaluate_block_utility(
+        process_block,
+        probability_map=probability_map,
+        loop_probability_map=loop_probability_map,
+    )
+
+    R_process = evaluate_block_responsiveness(
         process_block,
         probability_map=probability_map,
         loop_probability_map=loop_probability_map,
