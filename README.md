@@ -1,5 +1,3 @@
-# iepi-analytics-engine
-
 ## The Information Entropy Performance Indicator (IEPI)
 ### A Deterministic Analytics Engine for Quantifying Routing Uncertainty in BPMN Process Models
 
