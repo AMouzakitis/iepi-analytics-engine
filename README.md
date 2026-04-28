@@ -14,13 +14,9 @@ Given a process structure and a set of routing probabilities, the engine compute
 
 All outputs are deterministic functions of the provided inputs.
 
----
-
 ## Version
 
 **v1.0.0** — Reference implementation corresponding to the published study.
-
----
 
 ## Computation Framework
 
@@ -35,8 +31,6 @@ For each routing construct \(c\), the engine computes:
 
 These quantities describe the local uncertainty and structural properties of each routing construct.
 
----
-
 ### Block Level
 Uncertainty is propagated through the process structure using the composition rules:
 
@@ -44,8 +38,6 @@ Uncertainty is propagated through the process structure using the composition ru
 - \(R(B)\): descriptive responsiveness summary  
 
 **Note:** \(R(B)\) is descriptive only and does not participate in IEPI scoring.
-
----
 
 ### Process Level
 The IEPI score is computed as:
@@ -56,8 +48,6 @@ The IEPI score is computed as:
 
 where \(\overline{V}\) is the average violation across routing constructs.
 
----
-
 ## Repository Structure
 
 - `metrics.py` — entropy and responsiveness functions  
@@ -66,8 +56,6 @@ where \(\overline{V}\) is the average violation across routing constructs.
 - `iepi_score.py` — violation computation and IEPI aggregation  
 - `engine.py` — main orchestration logic  
 - `reproduce_results.py` — script to reproduce paper results  
-
----
 
 ## Reproducibility
 
