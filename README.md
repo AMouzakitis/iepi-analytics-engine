@@ -1,4 +1,4 @@
-# IEPI Analytics Engine
+### IEPI Analytics Engine
 
 Reference implementation of the Information Entropy Performance Indicator (IEPI) for BPMN 2.0 process models with externally specified routing probabilities. This implementation corresponds to the formulation presented in the associated manuscript and is intended solely for reproducibility of the reported results. Version v1.0.0 is the version used in the study.
 
