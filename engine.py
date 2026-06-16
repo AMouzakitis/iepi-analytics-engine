@@ -215,9 +215,9 @@ def evaluate_block_responsiveness(
     """
     Recursively evaluate the descriptive block-level responsiveness summary R(B).
 
-    In this reference implementation, the reported process-level R is the sum of
+        In this reference implementation, the reported block-level R is the sum of
     local routing responsiveness values across routing constructs appearing in
-    the process structure, consistent with the paper's reported Scenario A/B
+    the process structure, consistent with the paper's reported Scenario A--D
     block-level summaries.
     """
     block_type = block["type"]
