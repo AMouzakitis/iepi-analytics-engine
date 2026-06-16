@@ -14,6 +14,9 @@ Definitions implemented exactly as specified in the paper:
 3. Responsiveness:
    R(p) = 1 - Σ p_i^2
 
+   (equivalently the Gini-Simpson / collision-based dispersion measure
+   used throughout the IEPI framework)
+
 Notes
 -----
 - Natural logarithm is used throughout.
