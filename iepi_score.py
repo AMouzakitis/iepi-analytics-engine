@@ -13,7 +13,7 @@ where [x]_+ = max(x, 0).
 
 Notes
 -----
-- IEPI is computed from per-construct diagnostics.
+- IEPI is computed from per-construct viability-band violations.
 - This module is deterministic and contains no tuning or inference logic.
 """
 
