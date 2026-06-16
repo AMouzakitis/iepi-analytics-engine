@@ -26,7 +26,7 @@ Notes
 -----
 - Natural logarithm is used throughout.
 - This module assumes probabilities have already been validated.
-- No inference, tuning, or external modeling logic is included.
+- No inference, tuning, simulation, optimization, or external modeling logic is included.
 """
 
 from __future__ import annotations
