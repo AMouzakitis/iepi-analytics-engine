@@ -85,7 +85,10 @@ def check_loop_probability(
     Constraints checked
     -------------------
     1. q is finite.
-    2. q lies in [0, 1] up to tolerance.
+    2. q lies in [0, 1) up to tolerance.
+
+    The upper bound is strict because the LOOP composition rule contains
+    q / (1 - q), which is undefined for q = 1.
 
     Parameters
     ----------
@@ -105,11 +108,13 @@ def check_loop_probability(
         flags.append("NON_FINITE_Q")
         return flags
 
-    if q < -tol or q > 1.0 + tol:
+    if q < -tol:
         flags.append("OUT_OF_RANGE_Q")
 
-    return flags
+    if q >= 1.0 - tol:
+        flags.append("LOOP_Q_MUST_BE_LESS_THAN_ONE")
 
+    return flags
 
 def is_valid_probability_vector(
     probabilities: Sequence[float],
